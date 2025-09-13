@@ -11,12 +11,13 @@ __pycache__/
 # macOS system files
 .DS_Store
 
-# VS Code settings (optional, keep if you want to share settings)
-.vscode/*
-
-# Taipy exports (we stream to client, don’t store server-side)
-data/exports/*
-
 # Logs and temp
 *.log
 *.tmp
+
+# VS Code settings (optional, keep if you want to share settings)
+.vscode/*
+
+# Runtime-only data (not source of truth)
+data/exports/*
+data/staging/*
