@@ -1,0 +1,1828 @@
+[CE000] - SETUP COST – FIXED CALCULATION
+Status: ENFORCED
+Dependencies: [090]
+Applies To: Quote Breakdown, Operation Table
+Description:
+Setup cost is calculated as (Total Setup Time × $75/hr). This applies once per quote run, regardless of quantity. Setup values are fixed per operation and cannot be modified.
+Purpose:
+Ensures consistent pricing structure and decouples setup cost from part quantity scaling.
+Source: CalcRules_120–149.txt
+Comment: Applies globally across default tiers (1, 10, 25, 50). Also displayed in operation table as Xm / $X.XX.
+Validated In: Breakdown Calc Sim SC1
+
+[090] - OPERATION SEQUENCE RULES
+Status: ENFORCED
+Dependencies: —
+Applies To: All quoting sessions, Edit Mode validation
+Description:
+All quoting operations must follow a strict block-ordered structure and sequencing. The order begins with “Plan” and ends with “Inspect” and “Package.” “Install” must follow plating but precede painting operations.
+Purpose:
+Ensures consistent quoting logic, predictable rendering, and sequence enforcement during both auto-parsing and Edit Mode.
+Source: OperRules_090–119.txt
+Comment: Sequence rules apply across both default and user-edited quotes. Final two ops must always be Inspect → Package.
+Validated In: Simulation Loop – Sequence Check 01
+
+[120] - SETUP COST – FIXED CALCULATION
+Status: ENFORCED
+Dependencies: [090]
+Applies To: Quote Breakdown, Operation Table
+Description:
+Setup cost is calculated as (Total Setup Time × $75/hr). This applies once per quote run, regardless of quantity. Setup values are fixed per operation and cannot be modified.
+Purpose:
+Ensures consistent pricing structure and decouples setup cost from part quantity scaling.
+Source: CalcRules_120–149.txt
+Comment: Applies globally across default tiers (1, 10, 25, 50). Also displayed in operation table as Xm / $X.XX.
+Validated In: Breakdown Calc Sim SC1
+
+[123] - SETUP COST CALCULATION FORMULA
+Status: ENFORCED
+Dependencies: [120]
+Applies To: Quote Breakdown Calculations
+Description:
+Setup cost is calculated using:  
+• Operation Setup Cost = Setup minutes ÷ 60 × $75/hr  
+• Part Setup Cost = Sum of all Operation Setup Costs  
+• Total Setup = Part Setup Cost × Quantity Tier
+Purpose:
+This formula drives both the amortized and per-part breakdown values and ensures deterministic logic.
+Source: CalcRules_120–149.txt
+Comment: Displayed in both operation and breakdown views.
+Validated In: Cost Simulation C1
+
+[150] - SETUP RATE – FIXED
+Status: ENFORCED
+Dependencies: [120]
+Applies To: Cost Calculation, Quote Breakdown, Summary Block
+Description:
+Setup rate is fixed at $75/hr in ShopQuoteLite. This rate is multiplied by the setup time from each operation to compute setup cost per part.
+Purpose:
+Ensures accurate per-part cost generation by calculating the sum of all setup times multiplied by the setup rate.
+Source: CostRules_150–179.txt
+Comment: Setup time is evaluated per operation and charged per part.
+Validated In: Cost Engine v1, Quote Simulation 4
+
+[095] - SETUP TIME FORMAT LOCK (Xm / $X.XX)
+Status: ENFORCED
+Dependencies: [090]
+Applies To: Operation Breakdown block
+Description:
+All Setup fields in the Operation Breakdown must use the format “Xm / $X.XX”. Any alternate display format (e.g. seconds, minutes only, or dollar only) is disallowed.
+Purpose:
+Maintains visual consistency and user recognition of time-to-cost correlation.
+Source: OperRules_090–119.txt
+Comment: This applies across all quote tiers and blocks that display setup data.
+Validated In: Table Format Review T1
+
+----------------------------------------
+
+[CE001] - MARKUP PERCENT LOGIC
+Status: ENFORCED
+Dependencies: [120]
+Applies To: Quote Breakdown
+Description:
+Markup is applied as a fixed percentage across all subtotal cost tiers. The percentage value is embedded in the GPT system memory and not user-editable.
+Purpose:
+Provides consistent profit scaling while abstracting internal shop logic from user control.
+Source: CalcRules_120–149.txt
+Comment: Markup row appears between Subtotal and Total in the breakdown.
+Validated In: Quote Finalization Sim M1
+
+[120] - SETUP COST – FIXED CALCULATION
+Status: ENFORCED
+Dependencies: [090]
+Applies To: Quote Breakdown, Operation Table
+Description:
+Setup cost is calculated as (Total Setup Time × $75/hr). This applies once per quote run, regardless of quantity. Setup values are fixed per operation and cannot be modified.
+Purpose:
+Ensures consistent pricing structure and decouples setup cost from part quantity scaling.
+Source: CalcRules_120–149.txt
+Comment: Applies globally across default tiers (1, 10, 25, 50). Also displayed in operation table as Xm / $X.XX.
+Validated In: Breakdown Calc Sim SC1
+
+[121] - MARKUP PERCENT LOGIC
+Status: ENFORCED
+Dependencies: [120]
+Applies To: Quote Breakdown
+Description:
+Markup is applied as a fixed percentage across all subtotal cost tiers. The percentage value is embedded in the GPT system memory and not user-editable.
+Purpose:
+Provides consistent profit scaling while abstracting internal shop logic from user control.
+Source: CalcRules_120–149.txt
+Comment: Markup row appears between Subtotal and Total in the breakdown.
+Validated In: Quote Finalization Sim M1
+
+[154] - MARKUP PERCENTAGE – GLOBAL
+Status: ENFORCED
+Dependencies: [121]
+Applies To: Quote Finalization
+Description:
+35% markup is applied to all subtotal costs before quote display.
+Purpose:
+Enforces margin while decoupling from operation-level logic.
+Source: CostRules_150–179.txt
+Comment: Markup is the only global cost function in ShopQuoteLite.
+Validated In: Summary Output Test B3
+
+[159] - QUOTE BREAKDOWN – MARKUP LABEL FORMAT
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Breakdown Block
+Description:
+The Markup row in the Quote Breakdown block must display the percentage explicitly:  
+Label format: **Markup (35%)**
+Purpose:
+Prevents ambiguity in part pricing logic. Future versions may support user-defined % values.
+Source: CalcRules_120–149.txt
+Validated In: Audit Rule Edits_3.txt
+
+----------------------------------------
+
+[CE002] - QUOTE BREAKDOWN HEADER FORMAT
+Status: ENFORCED
+Dependencies: [121]
+Applies To: Quote Breakdown Table
+Description:
+The table header for quantity tiers must always appear as:  
+`|        | 1     | 10    | 25    | 50    |`  
+This ensures alignment with simulation testing and prevents format drift.
+Purpose:
+Locks presentation format for validation, OCR, and PDF exports.
+Source: CalcRules_120–149.txt
+Comment: Applies to both single and bulk quoting output modes.
+Validated In: Quote Layout Sim QH1
+
+[121] - MARKUP PERCENT LOGIC
+Status: ENFORCED
+Dependencies: [120]
+Applies To: Quote Breakdown
+Description:
+Markup is applied as a fixed percentage across all subtotal cost tiers. The percentage value is embedded in the GPT system memory and not user-editable.
+Purpose:
+Provides consistent profit scaling while abstracting internal shop logic from user control.
+Source: CalcRules_120–149.txt
+Comment: Markup row appears between Subtotal and Total in the breakdown.
+Validated In: Quote Finalization Sim M1
+
+[122] - QUOTE BREAKDOWN HEADER FORMAT
+Status: ENFORCED
+Dependencies: [121]
+Applies To: Quote Breakdown Table
+Description:
+The table header for quantity tiers must always appear as:  
+`|        | 1     | 10    | 25    | 50    |`  
+This ensures alignment with simulation testing and prevents format drift.
+Purpose:
+Locks presentation format for validation, OCR, and PDF exports.
+Source: CalcRules_120–149.txt
+Comment: Applies to both single and bulk quoting output modes.
+Validated In: Quote Layout Sim QH1
+
+[007] - QUOTE BREAKDOWN BLOCK
+Status: ENFORCED
+Dependencies: [006]
+Applies To: Quote Display UI
+Description:
+Summarizes cost breakdown across default quantity tiers (1, 10, 25, 50). Includes rows for setup, runtime, outside process, hardware, subtotal, markup, and total.
+Purpose:
+Delivers consistent quoting output with fixed cost visibility.
+Source: BlockRules_000–029.txt
+Comment: Header format must remain: `|        | 1     | 10    | 25    | 50    |`
+Validated In: Quote Breakdown Simulation QB1
+
+[061] - QUOTE BREAKDOWN BLOCK
+Status: ENFORCED
+Dependencies: [060]
+Applies To: Quote Display UI
+Description:
+Summarizes cost breakdown across default quantity tiers (1, 10, 25, 50). Includes rows for setup, runtime, outside process, hardware, subtotal, markup, and total.
+Purpose:
+Delivers consistent quoting output with fixed cost visibility and interaction continuity after Edit Mode.
+Source: EditModeRules_060–089.txt
+Comment: Quote table header format is locked to: `|        | 1     | 10    | 25    | 50    |`.
+Validated In: Quote Breakdown Simulation QB1
+
+[155] - ALLOWED QUANTITIES – FIXED TIERS
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Output, Summary Display
+Description:
+Only four quote tiers are allowed: 1, 10, 25, 50. No custom quantity entry is permitted in ShopQuoteLite.
+Purpose:
+Simplifies quoting interface and prevents user input errors.
+Source: CostRules_150–179.txt
+Comment: Full-tier GPTs will support quantity entry.
+Validated In: Quote Summary Simulation Q4
+
+[012] - QUOTE SUMMARY BLOCK: VERTICAL LAYOUT FORMAT
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Summary Block
+Description:
+Quote Summary must render in vertical layout with labels on separate lines, no embedded tables. Each quantity tier (1, 10, 25, 50) must appear on its own line prefixed by label `Qty X:`.
+Purpose:
+Optimizes readability in GPT and export views.
+Source: BlockRules_000–029.txt
+Validated In: Audit Map v9
+
+----------------------------------------
+
+[CE003] - SETUP COST CALCULATION FORMULA
+Status: ENFORCED
+Dependencies: [120]
+Applies To: Quote Breakdown Calculations
+Description:
+Setup cost is calculated using:  
+• Operation Setup Cost = Setup minutes ÷ 60 × $75/hr  
+• Part Setup Cost = Sum of all Operation Setup Costs  
+• Total Setup = Part Setup Cost × Quantity Tier
+Purpose:
+This formula drives both the amortized and per-part breakdown values and ensures deterministic logic.
+Source: CalcRules_120–149.txt
+Comment: Displayed in both operation and breakdown views.
+Validated In: Cost Simulation C1
+
+[120] - SETUP COST – FIXED CALCULATION
+Status: ENFORCED
+Dependencies: [090]
+Applies To: Quote Breakdown, Operation Table
+Description:
+Setup cost is calculated as (Total Setup Time × $75/hr). This applies once per quote run, regardless of quantity. Setup values are fixed per operation and cannot be modified.
+Purpose:
+Ensures consistent pricing structure and decouples setup cost from part quantity scaling.
+Source: CalcRules_120–149.txt
+Comment: Applies globally across default tiers (1, 10, 25, 50). Also displayed in operation table as Xm / $X.XX.
+Validated In: Breakdown Calc Sim SC1
+
+[123] - SETUP COST CALCULATION FORMULA
+Status: ENFORCED
+Dependencies: [120]
+Applies To: Quote Breakdown Calculations
+Description:
+Setup cost is calculated using:  
+• Operation Setup Cost = Setup minutes ÷ 60 × $75/hr  
+• Part Setup Cost = Sum of all Operation Setup Costs  
+• Total Setup = Part Setup Cost × Quantity Tier
+Purpose:
+This formula drives both the amortized and per-part breakdown values and ensures deterministic logic.
+Source: CalcRules_120–149.txt
+Comment: Displayed in both operation and breakdown views.
+Validated In: Cost Simulation C1
+
+[150] - SETUP RATE – FIXED
+Status: ENFORCED
+Dependencies: [120]
+Applies To: Cost Calculation, Quote Breakdown, Summary Block
+Description:
+Setup rate is fixed at $75/hr in ShopQuoteLite. This rate is multiplied by the setup time from each operation to compute setup cost per part.
+Purpose:
+Ensures accurate per-part cost generation by calculating the sum of all setup times multiplied by the setup rate.
+Source: CostRules_150–179.txt
+Comment: Setup time is evaluated per operation and charged per part.
+Validated In: Cost Engine v1, Quote Simulation 4
+
+[095] - SETUP TIME FORMAT LOCK (Xm / $X.XX)
+Status: ENFORCED
+Dependencies: [090]
+Applies To: Operation Breakdown block
+Description:
+All Setup fields in the Operation Breakdown must use the format “Xm / $X.XX”. Any alternate display format (e.g. seconds, minutes only, or dollar only) is disallowed.
+Purpose:
+Maintains visual consistency and user recognition of time-to-cost correlation.
+Source: OperRules_090–119.txt
+Comment: This applies across all quote tiers and blocks that display setup data.
+Validated In: Table Format Review T1
+
+----------------------------------------
+
+[CE004] - LABOR RATE FIXED
+Status: ENFORCED
+Dependencies: —
+Applies To: Runtime Costing, Operation Processing
+Description:
+The base labor rate is locked at $75/hour. Used in calculating runtime cost for all non-machine operations.
+Purpose:
+Ensures consistent labor cost estimation across standard operation types.
+Source: CalcRules_120–149.txt
+Comment: Not exposed to user; only affects internal cost logic.
+Validated In: Runtime Simulation R2
+
+[124] - LABOR RATE FIXED
+Status: ENFORCED
+Dependencies: —
+Applies To: Runtime Costing, Operation Processing
+Description:
+The base labor rate is locked at $75/hour. Used in calculating runtime cost for all non-machine operations.
+Purpose:
+Ensures consistent labor cost estimation across standard operation types.
+Source: CalcRules_120–149.txt
+Comment: Not exposed to user; only affects internal cost logic.
+Validated In: Runtime Simulation R2
+
+[151] - LABOR RATE – FIXED
+Status: ENFORCED
+Dependencies: [150]
+Applies To: Runtime Costing, Quote Summary
+Description:
+Labor rate is fixed at $75/hr. This is multiplied by the runtime of each operation to calculate total labor cost per part.
+Purpose:
+Reflects actual human involvement in manual or assisted operations.
+Source: CostRules_150–179.txt
+Comment: (runtime per op × # Ops) × labor rate.
+Validated In: Backend Cost Unit Test 1A
+
+[158] - SUMMARY BLOCK – SHOW SETUP/LABOR/MACHINE RATES
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Summary Block
+Description:
+Quote Summary block must include these three rate lines directly above the Quote Totals:  
+💲 Setup Rate: $75/hr  
+💲 Labor Rate: $75/hr  
+💲 Machine Rate: $250/hr
+Purpose:
+Clarifies cost assumptions and improves transparency in sandbox and demo modes.
+Source: CostRules_150–179.txt
+Validated In: Audit Map v9
+
+----------------------------------------
+
+[CE005] - MACHINE RATE FIXED
+Status: ENFORCED
+Dependencies: —
+Applies To: Laser, Punch, Mill Operation Types
+Description:
+Machine operations are calculated at a fixed rate of $250/hour. Applies to runtime cost of any operation tagged as machine-driven.
+Purpose:
+Ensures deterministic runtime cost for CNC-based processes.
+Source: CalcRules_120–149.txt
+Comment: Applies only to operation types identified in Operations_SQD.csv as machine operations.
+Validated In: Machine Cost Audit M3
+
+[125] - MACHINE RATE FIXED
+Status: ENFORCED
+Dependencies: —
+Applies To: Laser, Punch, Mill Operation Types
+Description:
+Machine operations are calculated at a fixed rate of $250/hour. Applies to runtime cost of any operation tagged as machine-driven.
+Purpose:
+Ensures deterministic runtime cost for CNC-based processes.
+Source: CalcRules_120–149.txt
+Comment: Applies only to operation types identified in Operations_SQD.csv as machine operations.
+Validated In: Machine Cost Audit M3
+
+[152] - MACHINE RATE – FIXED
+Status: ENFORCED
+Dependencies: [150]
+Applies To: Laser, Punch, Mill Operation Types
+Description:
+Machine rate is fixed at $250/hr. Only applies to machine-classified operations in the quoting sequence.
+Purpose:
+Represents equipment depreciation and machine time billing.
+Source: CostRules_150–179.txt
+Comment: Machine cost = runtime × machine rate.
+Validated In: Ops Table Simulation 5B
+
+[158] - SUMMARY BLOCK – SHOW SETUP/LABOR/MACHINE RATES
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Summary Block
+Description:
+Quote Summary block must include these three rate lines directly above the Quote Totals:  
+💲 Setup Rate: $75/hr  
+💲 Labor Rate: $75/hr  
+💲 Machine Rate: $250/hr
+Purpose:
+Clarifies cost assumptions and improves transparency in sandbox and demo modes.
+Source: CostRules_150–179.txt
+Validated In: Audit Map v9
+
+----------------------------------------
+
+[CE006] - QUOTE BREAKDOWN: AMORTIZED SETUP ROW
+Status: ENFORCED
+Dependencies: [123]
+Applies To: Quote Breakdown Display
+Description:
+The Setup row in the Quote Breakdown block must display the setup cost per part at each quantity tier.
+Formula:  
+Amortized Setup = Total Setup Cost ÷ Quantity
+Example:  
+If total setup = $112.50  
+→ Qty 1 = $112.50  
+→ Qty 10 = $11.25  
+→ Qty 25 = $4.50  
+→ Qty 50 = $2.25
+Purpose:
+Ensures setup cost scales properly across volume tiers.
+Source: CalcRules_120–149.txt
+Validated In: FULL_audit_map_sandbox_v2.md
+
+[123] - SETUP COST CALCULATION FORMULA
+Status: ENFORCED
+Dependencies: [120]
+Applies To: Quote Breakdown Calculations
+Description:
+Setup cost is calculated using:  
+• Operation Setup Cost = Setup minutes ÷ 60 × $75/hr  
+• Part Setup Cost = Sum of all Operation Setup Costs  
+• Total Setup = Part Setup Cost × Quantity Tier
+Purpose:
+This formula drives both the amortized and per-part breakdown values and ensures deterministic logic.
+Source: CalcRules_120–149.txt
+Comment: Displayed in both operation and breakdown views.
+Validated In: Cost Simulation C1
+
+[126] - QUOTE BREAKDOWN – AMORTIZED SETUP ROW
+Status: ENFORCED
+Dependencies: [123]
+Applies To: Quote Breakdown Display
+Description:
+The Setup row in the Quote Breakdown block must display the setup cost per part at each quantity tier.
+Formula:  
+Amortized Setup = Total Setup Cost ÷ Quantity
+Example:  
+If total setup = $112.50  
+→ Qty 1 = $112.50  
+→ Qty 10 = $11.25  
+→ Qty 25 = $4.50  
+→ Qty 50 = $2.25
+Purpose:
+Ensures setup cost scales properly across volume tiers.
+Source: CalcRules_120–149.txt
+Validated In: FULL_audit_map_sandbox_v2.md
+
+[120] - SETUP COST – FIXED CALCULATION
+Status: ENFORCED
+Dependencies: [090]
+Applies To: Quote Breakdown, Operation Table
+Description:
+Setup cost is calculated as (Total Setup Time × $75/hr). This applies once per quote run, regardless of quantity. Setup values are fixed per operation and cannot be modified.
+Purpose:
+Ensures consistent pricing structure and decouples setup cost from part quantity scaling.
+Source: CalcRules_120–149.txt
+Comment: Applies globally across default tiers (1, 10, 25, 50). Also displayed in operation table as Xm / $X.XX.
+Validated In: Breakdown Calc Sim SC1
+
+[150] - SETUP RATE – FIXED
+Status: ENFORCED
+Dependencies: [120]
+Applies To: Cost Calculation, Quote Breakdown, Summary Block
+Description:
+Setup rate is fixed at $75/hr in ShopQuoteLite. This rate is multiplied by the setup time from each operation to compute setup cost per part.
+Purpose:
+Ensures accurate per-part cost generation by calculating the sum of all setup times multiplied by the setup rate.
+Source: CostRules_150–179.txt
+Comment: Setup time is evaluated per operation and charged per part.
+Validated In: Cost Engine v1, Quote Simulation 4
+
+[095] - SETUP TIME FORMAT LOCK (Xm / $X.XX)
+Status: ENFORCED
+Dependencies: [090]
+Applies To: Operation Breakdown block
+Description:
+All Setup fields in the Operation Breakdown must use the format “Xm / $X.XX”. Any alternate display format (e.g. seconds, minutes only, or dollar only) is disallowed.
+Purpose:
+Maintains visual consistency and user recognition of time-to-cost correlation.
+Source: OperRules_090–119.txt
+Comment: This applies across all quote tiers and blocks that display setup data.
+Validated In: Table Format Review T1
+
+----------------------------------------
+
+[CE007] - QUOTE BREAKDOWN: STRUCTURE (SCALING VERSION)
+Status: ENFORCED
+Dependencies: [126]
+Applies To: Final Cost Table
+Description:
+Quote breakdown rows must be tiered for:  
+• Setup (amortized)  
+• Runtime  
+• Material  
+• Outside Process (if any)  
+• Hardware (if any)  
+• Subtotal  
+• Markup  
+• Total/Part
+Purpose:
+Standardizes final quote format and visual order across outputs.
+Source: CalcRules_120–149.txt
+Comment: Inline table format required, no scrollboxes.
+Validated In: Layout Sim T1
+
+[126] - QUOTE BREAKDOWN – AMORTIZED SETUP ROW
+Status: ENFORCED
+Dependencies: [123]
+Applies To: Quote Breakdown Display
+Description:
+The Setup row in the Quote Breakdown block must display the setup cost per part at each quantity tier.
+Formula:  
+Amortized Setup = Total Setup Cost ÷ Quantity
+Example:  
+If total setup = $112.50  
+→ Qty 1 = $112.50  
+→ Qty 10 = $11.25  
+→ Qty 25 = $4.50  
+→ Qty 50 = $2.25
+Purpose:
+Ensures setup cost scales properly across volume tiers.
+Source: CalcRules_120–149.txt
+Validated In: FULL_audit_map_sandbox_v2.md
+
+[127] - QUOTE BREAKDOWN – STRUCTURE
+Status: ENFORCED
+Dependencies: [126]
+Applies To: Final Cost Table
+Description:
+Quote breakdown rows must be tiered for:  
+• Setup (amortized)  
+• Runtime  
+• Material  
+• Outside Process (if any)  
+• Hardware (if any)  
+• Subtotal  
+• Markup  
+• Total/Part
+Purpose:
+Standardizes final quote format and visual order across outputs.
+Source: CalcRules_120–149.txt
+Comment: Inline table format required, no scrollboxes.
+Validated In: Layout Sim T1
+
+[007] - QUOTE BREAKDOWN BLOCK
+Status: ENFORCED
+Dependencies: [006]
+Applies To: Quote Display UI
+Description:
+Summarizes cost breakdown across default quantity tiers (1, 10, 25, 50). Includes rows for setup, runtime, outside process, hardware, subtotal, markup, and total.
+Purpose:
+Delivers consistent quoting output with fixed cost visibility.
+Source: BlockRules_000–029.txt
+Comment: Header format must remain: `|        | 1     | 10    | 25    | 50    |`
+Validated In: Quote Breakdown Simulation QB1
+
+[061] - QUOTE BREAKDOWN BLOCK
+Status: ENFORCED
+Dependencies: [060]
+Applies To: Quote Display UI
+Description:
+Summarizes cost breakdown across default quantity tiers (1, 10, 25, 50). Includes rows for setup, runtime, outside process, hardware, subtotal, markup, and total.
+Purpose:
+Delivers consistent quoting output with fixed cost visibility and interaction continuity after Edit Mode.
+Source: EditModeRules_060–089.txt
+Comment: Quote table header format is locked to: `|        | 1     | 10    | 25    | 50    |`.
+Validated In: Quote Breakdown Simulation QB1
+
+[155] - ALLOWED QUANTITIES – FIXED TIERS
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Output, Summary Display
+Description:
+Only four quote tiers are allowed: 1, 10, 25, 50. No custom quantity entry is permitted in ShopQuoteLite.
+Purpose:
+Simplifies quoting interface and prevents user input errors.
+Source: CostRules_150–179.txt
+Comment: Full-tier GPTs will support quantity entry.
+Validated In: Quote Summary Simulation Q4
+
+[012] - QUOTE SUMMARY BLOCK: VERTICAL LAYOUT FORMAT
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Summary Block
+Description:
+Quote Summary must render in vertical layout with labels on separate lines, no embedded tables. Each quantity tier (1, 10, 25, 50) must appear on its own line prefixed by label `Qty X:`.
+Purpose:
+Optimizes readability in GPT and export views.
+Source: BlockRules_000–029.txt
+Validated In: Audit Map v9
+
+----------------------------------------
+
+[CE008] - AUDIT MODE: DATA ENFORCEMENT LOCK
+Status: ENFORCED
+Dependencies: —
+Applies To: Rendered Quote, Audit Output
+Description:
+In any rendered quote or audit output, no runtime, setup, or cost values may be derived from memory or logic. Only values from CSV files are valid (e.g. `Operations_ShopQL_v1.0a.csv`). Sandbox “spitballing” or dev dialog may estimate values, but these must not appear in final outputs.
+Purpose:
+Guarantees quoting integrity, prevents hallucinated values in audits.
+Source: CalcRules_120–149.txt
+Validated In: Audit Rule Edits_2.txt
+
+[128] - AUDIT MODE – DATA ENFORCEMENT LOCK
+Status: ENFORCED
+Dependencies: —
+Applies To: Rendered Quote, Audit Output
+Description:
+In any rendered quote or audit output, no runtime, setup, or cost values may be derived from memory or logic. Only values from CSV files are valid (e.g. `Operations_ShopQL_v1.0a.csv`). Sandbox “spitballing” or dev dialog may estimate values, but these must not appear in final outputs.
+Purpose:
+Guarantees quoting integrity, prevents hallucinated values in audits.
+Source: CalcRules_120–149.txt
+Validated In: Audit Rule Edits_2.txt
+
+[157] - CSV VALUE ENFORCEMENT
+Status: ENFORCED
+Dependencies: —
+Applies To: All CSV-sourced values
+Description:
+All rates, times, and costs pulled from CSVs are hard-locked in ShopQuoteLite. No field in any CSV may be edited by the user.
+Purpose:
+Protects pricing integrity and prevents logic drift in Lite Mode.
+Source: CostRules_150–179.txt
+Comment: Only the `flawswatter` dev user may override this behavior.
+Validated In: Sandbox Runtime Check 2
+
+[903] - FALLBACK PARSING DISABLED
+Status: ENFORCED
+Dependencies: —
+Applies To: GPT Parser and Simulation Engine
+Description:
+If required data is missing from any CSV or parser output, GPT is not permitted to guess, fill, or hallucinate values. Simulation must fail cleanly.
+Purpose:
+Prevents GPT from guessing values and guarantees integrity of quoting logic.
+Source: Metadata_ShopQL_v1.0a.txt
+Validated In: Fallback Block Test F9
+
+[904] - FILE INTEGRITY LOCK
+Status: ENFORCED
+Dependencies: —
+Applies To: GPT Sandbox
+Description:
+All five core files must pass schema checks, contain no TBD or blank values, and include complete rows. Failure of any file halts quoting logic entirely.
+Purpose:
+Ensures data integrity and prevents incomplete data processing.
+Source: Metadata_ShopQL_v1.0a.txt
+Comment: Tied to 🔐 ENFORCE and 🛠️ REBUILD_REQUIRED
+Validated In: Hard Stop Simulation H1
+
+[901] - FILE ENCODING CHECK (UTF-8 ONLY)
+Status: ENFORCED
+Dependencies: —
+Applies To: CSV Loader
+Description:
+All CSV files must be UTF-8 encoded. If encoding differs (e.g., ANSI, ISO), simulation halts.
+Purpose:
+Ensures consistent file encoding for reliable data processing.
+Source: Metadata_ShopQL_v1.0a.txt
+Comment: Tied to 📏 ENCODING_CHECK_REQUIRED
+Validated In: Schema Gate UTF-Sim1
+
+[902] - SCHEMA ROW VALIDATION
+Status: ENFORCED
+Dependencies: —
+Applies To: File Validator
+Description:
+Each CSV must start on row 1 with valid headers. No metadata, titles, or blank rows allowed above header.
+Purpose:
+Ensures proper CSV structure for accurate data parsing.
+Source: Metadata_ShopQL_v1.0a.txt
+Validated In: CSV Schema Sim C1
+
+----------------------------------------
+
+[CE009] - SETUP RATE (FIXED)
+Status: ENFORCED
+Dependencies: [120]
+Applies To: Cost Calculation, Quote Breakdown, Summary Block
+Description:
+Setup rate is fixed at $75/hr in ShopQuoteLite. This rate is multiplied by the setup time from each operation to compute setup cost per part.
+Purpose:
+Ensures accurate per-part cost generation by calculating the sum of all setup times multiplied by the setup rate.
+Source: CostRules_150–179.txt
+Comment: Setup time is evaluated per operation and charged per part.
+Validated In: Cost Engine v1, Quote Simulation 4
+
+[120] - SETUP COST – FIXED CALCULATION
+Status: ENFORCED
+Dependencies: [090]
+Applies To: Quote Breakdown, Operation Table
+Description:
+Setup cost is calculated as (Total Setup Time × $75/hr). This applies once per quote run, regardless of quantity. Setup values are fixed per operation and cannot be modified.
+Purpose:
+Ensures consistent pricing structure and decouples setup cost from part quantity scaling.
+Source: CalcRules_120–149.txt
+Comment: Applies globally across default tiers (1, 10, 25, 50). Also displayed in operation table as Xm / $X.XX.
+Validated In: Breakdown Calc Sim SC1
+
+[150] - SETUP RATE – FIXED
+Status: ENFORCED
+Dependencies: [120]
+Applies To: Cost Calculation, Quote Breakdown, Summary Block
+Description:
+Setup rate is fixed at $75/hr in ShopQuoteLite. This rate is multiplied by the setup time from each operation to compute setup cost per part.
+Purpose:
+Ensures accurate per-part cost generation by calculating the sum of all setup times multiplied by the setup rate.
+Source: CostRules_150–179.txt
+Comment: Setup time is evaluated per operation and charged per part.
+Validated In: Cost Engine v1, Quote Simulation 4
+
+[123] - SETUP COST CALCULATION FORMULA
+Status: ENFORCED
+Dependencies: [120]
+Applies To: Quote Breakdown Calculations
+Description:
+Setup cost is calculated using:  
+• Operation Setup Cost = Setup minutes ÷ 60 × $75/hr  
+• Part Setup Cost = Sum of all Operation Setup Costs  
+• Total Setup = Part Setup Cost × Quantity Tier
+Purpose:
+This formula drives both the amortized and per-part breakdown values and ensures deterministic logic.
+Source: CalcRules_120–149.txt
+Comment: Displayed in both operation and breakdown views.
+Validated In: Cost Simulation C1
+
+[095] - SETUP TIME FORMAT LOCK (Xm / $X.XX)
+Status: ENFORCED
+Dependencies: [090]
+Applies To: Operation Breakdown block
+Description:
+All Setup fields in the Operation Breakdown must use the format “Xm / $X.XX”. Any alternate display format (e.g. seconds, minutes only, or dollar only) is disallowed.
+Purpose:
+Maintains visual consistency and user recognition of time-to-cost correlation.
+Source: OperRules_090–119.txt
+Comment: This applies across all quote tiers and blocks that display setup data.
+Validated In: Table Format Review T1
+
+----------------------------------------
+
+[CE010] - LABOR RATE (FIXED)
+Status: ENFORCED
+Dependencies: [150]
+Applies To: Runtime Costing, Quote Summary
+Description:
+Labor rate is fixed at $75/hr. This is multiplied by the runtime of each operation to calculate total labor cost per part.
+Purpose:
+Reflects actual human involvement in manual or assisted operations.
+Source: CostRules_150–179.txt
+Comment: (runtime per op × # Ops) × labor rate.
+Validated In: Backend Cost Unit Test 1A
+
+[150] - SETUP RATE – FIXED
+Status: ENFORCED
+Dependencies: [120]
+Applies To: Cost Calculation, Quote Breakdown, Summary Block
+Description:
+Setup rate is fixed at $75/hr in ShopQuoteLite. This rate is multiplied by the setup time from each operation to compute setup cost per part.
+Purpose:
+Ensures accurate per-part cost generation by calculating the sum of all setup times multiplied by the setup rate.
+Source: CostRules_150–179.txt
+Comment: Setup time is evaluated per operation and charged per part.
+Validated In: Cost Engine v1, Quote Simulation 4
+
+[151] - LABOR RATE – FIXED
+Status: ENFORCED
+Dependencies: [150]
+Applies To: Runtime Costing, Quote Summary
+Description:
+Labor rate is fixed at $75/hr. This is multiplied by the runtime of each operation to calculate total labor cost per part.
+Purpose:
+Reflects actual human involvement in manual or assisted operations.
+Source: CostRules_150–179.txt
+Comment: (runtime per op × # Ops) × labor rate.
+Validated In: Backend Cost Unit Test 1A
+
+[124] - LABOR RATE FIXED
+Status: ENFORCED
+Dependencies: —
+Applies To: Runtime Costing, Operation Processing
+Description:
+The base labor rate is locked at $75/hour. Used in calculating runtime cost for all non-machine operations.
+Purpose:
+Ensures consistent labor cost estimation across standard operation types.
+Source: CalcRules_120–149.txt
+Comment: Not exposed to user; only affects internal cost logic.
+Validated In: Runtime Simulation R2
+
+[158] - SUMMARY BLOCK – SHOW SETUP/LABOR/MACHINE RATES
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Summary Block
+Description:
+Quote Summary block must include these three rate lines directly above the Quote Totals:  
+💲 Setup Rate: $75/hr  
+💲 Labor Rate: $75/hr  
+💲 Machine Rate: $250/hr
+Purpose:
+Clarifies cost assumptions and improves transparency in sandbox and demo modes.
+Source: CostRules_150–179.txt
+Validated In: Audit Map v9
+
+----------------------------------------
+
+[CE011] - MACHINE RATE (FIXED)
+Status: ENFORCED
+Dependencies: [150]
+Applies To: Laser, Punch, Mill Operation Types
+Description:
+Machine rate is fixed at $250/hr. Only applies to machine-classified operations in the quoting sequence.
+Purpose:
+Represents equipment depreciation and machine time billing.
+Source: CostRules_150–179.txt
+Comment: Machine cost = runtime × machine rate.
+Validated In: Ops Table Simulation 5B
+
+[150] - SETUP RATE – FIXED
+Status: ENFORCED
+Dependencies: [120]
+Applies To: Cost Calculation, Quote Breakdown, Summary Block
+Description:
+Setup rate is fixed at $75/hr in ShopQuoteLite. This rate is multiplied by the setup time from each operation to compute setup cost per part.
+Purpose:
+Ensures accurate per-part cost generation by calculating the sum of all setup times multiplied by the setup rate.
+Source: CostRules_150–179.txt
+Comment: Setup time is evaluated per operation and charged per part.
+Validated In: Cost Engine v1, Quote Simulation 4
+
+[152] - MACHINE RATE – FIXED
+Status: ENFORCED
+Dependencies: [150]
+Applies To: Laser, Punch, Mill Operation Types
+Description:
+Machine rate is fixed at $250/hr. Only applies to machine-classified operations in the quoting sequence.
+Purpose:
+Represents equipment depreciation and machine time billing.
+Source: CostRules_150–179.txt
+Comment: Machine cost = runtime × machine rate.
+Validated In: Ops Table Simulation 5B
+
+[125] - MACHINE RATE FIXED
+Status: ENFORCED
+Dependencies: —
+Applies To: Laser, Punch, Mill Operation Types
+Description:
+Machine operations are calculated at a fixed rate of $250/hour. Applies to runtime cost of any operation tagged as machine-driven.
+Purpose:
+Ensures deterministic runtime cost for CNC-based processes.
+Source: CalcRules_120–149.txt
+Comment: Applies only to operation types identified in Operations_SQD.csv as machine operations.
+Validated In: Machine Cost Audit M3
+
+[158] - SUMMARY BLOCK – SHOW SETUP/LABOR/MACHINE RATES
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Summary Block
+Description:
+Quote Summary block must include these three rate lines directly above the Quote Totals:  
+💲 Setup Rate: $75/hr  
+💲 Labor Rate: $75/hr  
+💲 Machine Rate: $250/hr
+Purpose:
+Clarifies cost assumptions and improves transparency in sandbox and demo modes.
+Source: CostRules_150–179.txt
+Validated In: Audit Map v9
+
+----------------------------------------
+
+[CE012] - OUTSIDE PROCESS PRICING (CSV-SOURCED)
+Status: ENFORCED
+Dependencies: —
+Applies To: All Outside Process types
+Description:
+All outside process pricing in ShopQuoteLite is sourced directly from the `Cost/Sq In` column of `OutsideProcess_ShopQL_v1.0a.csv`.
+Purpose:
+Centralizes OP pricing logic in the CSV. This simplifies quoting and allows scalable full-version overrides later.
+Source: CostRules_150–179.txt
+Comment: No price editing allowed in ShopQuoteLite. All values are locked read-only.
+Validated In: CSV Injection Test, OP Quote Generation A
+
+[153] - OUTSIDE PROCESS PRICING – CSV-SOURCED
+Status: ENFORCED
+Dependencies: —
+Applies To: All Outside Process types
+Description:
+All outside process pricing in ShopQuoteLite is sourced directly from the `Cost/Sq In` column of `OutsideProcess_ShopQL_v1.0a.csv`.
+Purpose:
+Centralizes OP pricing logic in the CSV. This simplifies quoting and allows scalable full-version overrides later.
+Source: CostRules_150–179.txt
+Comment: No price editing allowed in ShopQuoteLite. All values are locked read-only.
+Validated In: CSV Injection Test, OP Quote Generation A
+
+[063] - OUTSIDE PROCESS MANUAL ADD LIST
+Status: ENFORCED
+Dependencies: [060]
+Applies To: Edit Mode (Outside Process Menu)
+Description:
+When manually adding an Outside Process during Edit Mode, the system only accepts entries from a pre-approved locked list defined in the GPT instructions file.
+Purpose:
+Prevents hallucinated OP entries and enforces quoting compliance with known cost data.
+Source: EditModeRules_060–089.txt
+Comment: Locked list includes six MIL-SPEC and paint entries. Cost data still pulled from OutsideProcess_SQD.csv.
+Validated In: OP Add Menu Simulation OP1
+
+[067] - OUTSIDE PROCESS DISPLAY FORMAT
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Display UI
+Description:
+Outside Process block must not show pricing. Format must follow:  
+`• Label – Color (SPEC)` (e.g. Anodize – Black (MIL-A-8625F))  
+Pricing is enforced separately in Quote Breakdown.
+Purpose:
+Avoids duplicate pricing confusion.
+Source: EditModeRules_060–089.txt
+Validated In: Audit Map v9
+
+[005] - OUTSIDE PROCESS BLOCK
+Status: ENFORCED
+Dependencies: [004]
+Applies To: Quote Display UI
+Description:
+This block lists any finishing or processing steps handled outside the shop, such as plating, powdercoat, silk screen, etc. Each is pulled from the parsed PDF or entered manually in Edit Mode.
+Purpose:
+Ensures accurate cost modeling and visual traceability of outsourced operations.
+Source: BlockRules_000–029.txt
+Comment: Color specs (e.g. Black Anodize) are embedded in the label if parsed.
+Validated In: Quote Flow Simulation O3
+
+[160] - QUOTE BREAKDOWN – OP AND HARDWARE LABELS
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Breakdown Block
+Description:
+When multiple Outside Processes or Hardware types are present:  
+• Each must appear as its own row labeled with description (e.g., `OP – Anodize`, `HW – FH-M3-6`)
+Purpose:
+Improves traceability of per-process costs in the Breakdown table.
+Source: CalcRules_120–149.txt
+Validated In: Audit Rule Edits_3.txt
+
+[210] - OUTSIDE PROCESS – Anodize MIL-PRF-8625 Type I
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Defines recognition and enforcement of the outside process “Anodize – MIL-PRF-8625 Type I”.
+Purpose:
+Supports part-specific logic, future price control menus, and quote visibility per OP.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[211] - OUTSIDE PROCESS – Anodize MIL-PRF-8625 Type II
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Recognized OP: “Anodize – MIL-PRF-8625 Type II”
+Purpose:
+Standardizes anodize type-II quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[212] - OUTSIDE PROCESS – Anodize MIL-PRF-8625 Type III
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Recognized OP: “Anodize – MIL-PRF-8625 Type III”
+Purpose:
+Standardizes anodize type-III quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[213] - OUTSIDE PROCESS – Bead Blast
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Recognized OP with no spec. Used in finish-only workflows.
+Purpose:
+Standardizes bead blast quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[214] - OUTSIDE PROCESS – Black Oxide MIL-C-13924
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Supports black oxide finishing logic under MIL spec.
+Purpose:
+Standardizes black oxide quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[215] - OUTSIDE PROCESS – Brushed
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Generic mechanical finish with no spec required.
+Purpose:
+Standardizes brushed finish quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[216] - OUTSIDE PROCESS – Chem Film Clear
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Also labeled “C/F Clear” in CSV and display logic.
+Purpose:
+Standardizes chem film clear quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[217] - OUTSIDE PROCESS – Chem Film Gold
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Also labeled “C/F Gold”
+Purpose:
+Standardizes chem film gold quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[218] - OUTSIDE PROCESS – Electropolish
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Electrochemical polishing, spec-free, recognized label.
+Purpose:
+Standardizes electropolish quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[219] - OUTSIDE PROCESS – Misc
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Placeholder for rare, approved processes only. Pricing still sourced from CSV.
+Purpose:
+Standardizes miscellaneous process quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[220] - OUTSIDE PROCESS – Nickel Plate
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Standard nickel plating logic.
+Purpose:
+Standardizes nickel plating quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[221] - OUTSIDE PROCESS – Paint
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Base-level paint spec enforced for quoting.
+Purpose:
+Standardizes paint quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[222] - OUTSIDE PROCESS – Passivate
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Supports stainless passivation OPs.
+Purpose:
+Standardizes passivation quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[223] - OUTSIDE PROCESS – Polish
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Generic cosmetic polish (no spec).
+Purpose:
+Standardizes polish quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[224] - OUTSIDE PROCESS – Powder Coat
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Includes both custom and standard colors (cost same tier).
+Purpose:
+Standardizes powder coat quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[225] - OUTSIDE PROCESS – Silkscreen
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Used for logos, text, graphics. Spec optional.
+Purpose:
+Standardizes silkscreen quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[226] - OUTSIDE PROCESS – Tin Plate
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Defines tin plating quoting logic.
+Purpose:
+Standardizes tin plating quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[227] - OUTSIDE PROCESS – Zinc Plate
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Standard zinc plating OP label.
+Purpose:
+Standardizes zinc plating quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+----------------------------------------
+
+[CE013] - MARKUP PERCENTAGE (GLOBAL)
+Status: ENFORCED
+Dependencies: [121]
+Applies To: Quote Finalization
+Description:
+35% markup is applied to all subtotal costs before quote display.
+Purpose:
+Enforces margin while decoupling from operation-level logic.
+Source: CostRules_150–179.txt
+Comment: Markup is the only global cost function in ShopQuoteLite.
+Validated In: Summary Output Test B3
+
+[121] - MARKUP PERCENT LOGIC
+Status: ENFORCED
+Dependencies: [120]
+Applies To: Quote Breakdown
+Description:
+Markup is applied as a fixed percentage across all subtotal cost tiers. The percentage value is embedded in the GPT system memory and not user-editable.
+Purpose:
+Provides consistent profit scaling while abstracting internal shop logic from user control.
+Source: CalcRules_120–149.txt
+Comment: Markup row appears between Subtotal and Total in the breakdown.
+Validated In: Quote Finalization Sim M1
+
+[154] - MARKUP PERCENTAGE – GLOBAL
+Status: ENFORCED
+Dependencies: [121]
+Applies To: Quote Finalization
+Description:
+35% markup is applied to all subtotal costs before quote display.
+Purpose:
+Enforces margin while decoupling from operation-level logic.
+Source: CostRules_150–179.txt
+Comment: Markup is the only global cost function in ShopQuoteLite.
+Validated In: Summary Output Test B3
+
+[159] - QUOTE BREAKDOWN – MARKUP LABEL FORMAT
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Breakdown Block
+Description:
+The Markup row in the Quote Breakdown block must display the percentage explicitly:  
+Label format: **Markup (35%)**
+Purpose:
+Prevents ambiguity in part pricing logic. Future versions may support user-defined % values.
+Source: CalcRules_120–149.txt
+Validated In: Audit Rule Edits_3.txt
+
+----------------------------------------
+
+[CE014] - ALLOWED QUANTITIES (FIXED TIERS)
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Output, Summary Display
+Description:
+Only four quote tiers are allowed: 1, 10, 25, 50. No custom quantity entry is permitted in ShopQuoteLite.
+Purpose:
+Simplifies quoting interface and prevents user input errors.
+Source: CostRules_150–179.txt
+Comment: Full-tier GPTs will support quantity entry.
+Validated In: Quote Summary Simulation Q4
+
+[155] - ALLOWED QUANTITIES – FIXED TIERS
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Output, Summary Display
+Description:
+Only four quote tiers are allowed: 1, 10, 25, 50. No custom quantity entry is permitted in ShopQuoteLite.
+Purpose:
+Simplifies quoting interface and prevents user input errors.
+Source: CostRules_150–179.txt
+Comment: Full-tier GPTs will support quantity entry.
+Validated In: Quote Summary Simulation Q4
+
+[122] - QUOTE BREAKDOWN HEADER FORMAT
+Status: ENFORCED
+Dependencies: [121]
+Applies To: Quote Breakdown Table
+Description:
+The table header for quantity tiers must always appear as:  
+`|        | 1     | 10    | 25    | 50    |`  
+This ensures alignment with simulation testing and prevents format drift.
+Purpose:
+Locks presentation format for validation, OCR, and PDF exports.
+Source: CalcRules_120–149.txt
+Comment: Applies to both single and bulk quoting output modes.
+Validated In: Quote Layout Sim QH1
+
+[012] - QUOTE SUMMARY BLOCK: VERTICAL LAYOUT FORMAT
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Summary Block
+Description:
+Quote Summary must render in vertical layout with labels on separate lines, no embedded tables. Each quantity tier (1, 10, 25, 50) must appear on its own line prefixed by label `Qty X:`.
+Purpose:
+Optimizes readability in GPT and export views.
+Source: BlockRules_000–029.txt
+Validated In: Audit Map v9
+
+----------------------------------------
+
+[CE015] - RATE VISIBILITY CONTROL
+Status: ENFORCED
+Dependencies: —
+Applies To: UI Layer, Quote Summary
+Description:
+Rates (setup, labor, machine) are not visible during quoting steps. They appear only in the final summary block.
+Purpose:
+Shifts user focus away from granular cost control during quoting flow.
+Source: CostRules_150–179.txt
+Comment: Summary = quote reveal moment. Rates pop only at that point.
+Validated In: Layout UX Review Pass
+
+[156] - RATE VISIBILITY CONTROL
+Status: ENFORCED
+Dependencies: —
+Applies To: UI Layer, Quote Summary
+Description:
+Rates (setup, labor, machine) are not visible during quoting steps. They appear only in the final summary block.
+Purpose:
+Shifts user focus away from granular cost control during quoting flow.
+Source: CostRules_150–179.txt
+Comment: Summary = quote reveal moment. Rates pop only at that point.
+Validated In: Layout UX Review Pass
+
+[158] - SUMMARY BLOCK – SHOW SETUP/LABOR/MACHINE RATES
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Summary Block
+Description:
+Quote Summary block must include these three rate lines directly above the Quote Totals:  
+💲 Setup Rate: $75/hr  
+💲 Labor Rate: $75/hr  
+💲 Machine Rate: $250/hr
+Purpose:
+Clarifies cost assumptions and improves transparency in sandbox and demo modes.
+Source: CostRules_150–179.txt
+Validated In: Audit Map v9
+
+[010] - SUMMARY BLOCK: STRUCTURE AND CONTROLS
+Status: ENFORCED
+Dependencies: [007]
+Applies To: Final Quote Display
+Description:
+Displays the summary block and part totals for user review and export. Includes hardcoded UI options for Print, Export, and Start Over.
+Purpose:
+Anchors session conclusion and enables archiving of quote results.
+Source: BlockRules_000–029.txt
+Comment: Message “===== DEMO ONLY – Not for Production Use =====” must always appear in summary.
+Validated In: Quote Finalization Simulation S1
+
+[013] - SUMMARY INTERACTION COMMANDS (S/N/Q PROMPTS)
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Summary Block
+Description:
+At the bottom of the Quote Summary block, the following control options must appear verbatim:  
+→ Type S to Save Quote  
+→ Type N to Start New Quote  
+→ Type Q to Quit
+Purpose:
+Provides user-friendly navigation while maintaining mode separation.
+Source: BlockRules_000–029.txt
+Validated In: Audit Map v9
+
+[018] - QUOTE SUMMARY PROMPTS: EMOJI FORMAT
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Summary Block
+Description:
+The Quote Summary interaction options must be rendered using emoji bullets:  
+💾 Type S to Save Quote  
+🐣 Type N to Start New Quote  
+📴 Type Q to Quit
+Purpose:
+Replaces arrow style with clearly defined emoji cues. Strict UI lock.
+Source: BlockRules_000–029.txt
+Validated In: Audit Rule Edits_3.txt
+
+----------------------------------------
+
+[CE016] - CSV VALUE ENFORCEMENT (LOCKED IN LITE)
+Status: ENFORCED
+Dependencies: —
+Applies To: All CSV-sourced values
+Description:
+All rates, times, and costs pulled from CSVs are hard-locked in ShopQuoteLite. No field in any CSV may be edited by the user.
+Purpose:
+Protects pricing integrity and prevents logic drift in Lite Mode.
+Source: CostRules_150–179.txt
+Comment: Only the `flawswatter` dev user may override this behavior.
+Validated In: Sandbox Runtime Check 2
+
+[157] - CSV VALUE ENFORCEMENT
+Status: ENFORCED
+Dependencies: —
+Applies To: All CSV-sourced values
+Description:
+All rates, times, and costs pulled from CSVs are hard-locked in ShopQuoteLite. No field in any CSV may be edited by the user.
+Purpose:
+Protects pricing integrity and prevents logic drift in Lite Mode.
+Source: CostRules_150–179.txt
+Comment: Only the `flawswatter` dev user may override this behavior.
+Validated In: Sandbox Runtime Check 2
+
+[128] - AUDIT MODE – DATA ENFORCEMENT LOCK
+Status: ENFORCED
+Dependencies: —
+Applies To: Rendered Quote, Audit Output
+Description:
+In any rendered quote or audit output, no runtime, setup, or cost values may be derived from memory or logic. Only values from CSV files are valid (e.g. `Operations_ShopQL_v1.0a.csv`). Sandbox “spitballing” or dev dialog may estimate values, but these must not appear in final outputs.
+Purpose:
+Guarantees quoting integrity, prevents hallucinated values in audits.
+Source: CalcRules_120–149.txt
+Validated In: Audit Rule Edits_2.txt
+
+[903] - FALLBACK PARSING DISABLED
+Status: ENFORCED
+Dependencies: —
+Applies To: GPT Parser and Simulation Engine
+Description:
+If required data is missing from any CSV or parser output, GPT is not permitted to guess, fill, or hallucinate values. Simulation must fail cleanly.
+Purpose:
+Prevents GPT from guessing values and guarantees integrity of quoting logic.
+Source: Metadata_ShopQL_v1.0a.txt
+Validated In: Fallback Block Test F9
+
+[904] - FILE INTEGRITY LOCK
+Status: ENFORCED
+Dependencies: —
+Applies To: GPT Sandbox
+Description:
+All five core files must pass schema checks, contain no TBD or blank values, and include complete rows. Failure of any file halts quoting logic entirely.
+Purpose:
+Ensures data integrity and prevents incomplete data processing.
+Source: Metadata_ShopQL_v1.0a.txt
+Comment: Tied to 🔐 ENFORCE and 🛠️ REBUILD_REQUIRED
+Validated In: Hard Stop Simulation H1
+
+[901] - FILE ENCODING CHECK (UTF-8 ONLY)
+Status: ENFORCED
+Dependencies: —
+Applies To: CSV Loader
+Description:
+All CSV files must be UTF-8 encoded. If encoding differs (e.g., ANSI, ISO), simulation halts.
+Purpose:
+Ensures consistent file encoding for reliable data processing.
+Source: Metadata_ShopQL_v1.0a.txt
+Comment: Tied to 📏 ENCODING_CHECK_REQUIRED
+Validated In: Schema Gate UTF-Sim1
+
+[902] - SCHEMA ROW VALIDATION
+Status: ENFORCED
+Dependencies: —
+Applies To: File Validator
+Description:
+Each CSV must start on row 1 with valid headers. No metadata, titles, or blank rows allowed above header.
+Purpose:
+Ensures proper CSV structure for accurate data parsing.
+Source: Metadata_ShopQL_v1.0a.txt
+Validated In: CSV Schema Sim C1
+
+----------------------------------------
+
+[CE017] - SUMMARY BLOCK: SHOW SETUP / LABOR / MACHINE RATES
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Summary Block
+Description:
+Quote Summary block must include these three rate lines directly above the Quote Totals:  
+💲 Setup Rate: $75/hr  
+💲 Labor Rate: $75/hr  
+💲 Machine Rate: $250/hr
+Purpose:
+Clarifies cost assumptions and improves transparency in sandbox and demo modes.
+Source: CostRules_150–179.txt
+Validated In: Audit Map v9
+
+[158] - SUMMARY BLOCK – SHOW SETUP/LABOR/MACHINE RATES
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Summary Block
+Description:
+Quote Summary block must include these three rate lines directly above the Quote Totals:  
+💲 Setup Rate: $75/hr  
+💲 Labor Rate: $75/hr  
+💲 Machine Rate: $250/hr
+Purpose:
+Clarifies cost assumptions and improves transparency in sandbox and demo modes.
+Source: CostRules_150–179.txt
+Validated In: Audit Map v9
+
+[156] - RATE VISIBILITY CONTROL
+Status: ENFORCED
+Dependencies: —
+Applies To: UI Layer, Quote Summary
+Description:
+Rates (setup, labor, machine) are not visible during quoting steps. They appear only in the final summary block.
+Purpose:
+Shifts user focus away from granular cost control during quoting flow.
+Source: CostRules_150–179.txt
+Comment: Summary = quote reveal moment. Rates pop only at that point.
+Validated In: Layout UX Review Pass
+
+[010] - SUMMARY BLOCK: STRUCTURE AND CONTROLS
+Status: ENFORCED
+Dependencies: [007]
+Applies To: Final Quote Display
+Description:
+Displays the summary block and part totals for user review and export. Includes hardcoded UI options for Print, Export, and Start Over.
+Purpose:
+Anchors session conclusion and enables archiving of quote results.
+Source: BlockRules_000–029.txt
+Comment: Message “===== DEMO ONLY – Not for Production Use =====” must always appear in summary.
+Validated In: Quote Finalization Simulation S1
+
+[013] - SUMMARY INTERACTION COMMANDS (S/N/Q PROMPTS)
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Summary Block
+Description:
+At the bottom of the Quote Summary block, the following control options must appear verbatim:  
+→ Type S to Save Quote  
+→ Type N to Start New Quote  
+→ Type Q to Quit
+Purpose:
+Provides user-friendly navigation while maintaining mode separation.
+Source: BlockRules_000–029.txt
+Validated In: Audit Map v9
+
+[018] - QUOTE SUMMARY PROMPTS: EMOJI FORMAT
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Summary Block
+Description:
+The Quote Summary interaction options must be rendered using emoji bullets:  
+💾 Type S to Save Quote  
+🐣 Type N to Start New Quote  
+📴 Type Q to Quit
+Purpose:
+Replaces arrow style with clearly defined emoji cues. Strict UI lock.
+Source: BlockRules_000–029.txt
+Validated In: Audit Rule Edits_3.txt
+
+[016] - SUMMARY BLOCK: EMOJI LIMITATION
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Summary Block
+Description:
+Emoji usage in the Summary Block is restricted. The following may be used: 📄, ⚙️, 📉, 📌.  
+**💲 may not appear** in Setup/Labor/Machine rate labels.
+Purpose:
+Maintains professional formatting and avoids overstyling in user exports.
+Source: BlockRules_000–029.txt
+Validated In: Audit Audit Edits_2.txt
+
+----------------------------------------
+
+[CE018] - QUOTE BREAKDOWN: MARKUP LABEL FORMAT
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Breakdown Block
+Description:
+The Markup row in the Quote Breakdown block must display the percentage explicitly:  
+Label format: **Markup (35%)**
+Purpose:
+Prevents ambiguity in part pricing logic. Future versions may support user-defined % values.
+Source: CalcRules_120–149.txt
+Validated In: Audit Rule Edits_3.txt
+
+[159] - QUOTE BREAKDOWN – MARKUP LABEL FORMAT
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Breakdown Block
+Description:
+The Markup row in the Quote Breakdown block must display the percentage explicitly:  
+Label format: **Markup (35%)**
+Purpose:
+Prevents ambiguity in part pricing logic. Future versions may support user-defined % values.
+Source: CalcRules_120–149.txt
+Validated In: Audit Rule Edits_3.txt
+
+[121] - MARKUP PERCENT LOGIC
+Status: ENFORCED
+Dependencies: [120]
+Applies To: Quote Breakdown
+Description:
+Markup is applied as a fixed percentage across all subtotal cost tiers. The percentage value is embedded in the GPT system memory and not user-editable.
+Purpose:
+Provides consistent profit scaling while abstracting internal shop logic from user control.
+Source: CalcRules_120–149.txt
+Comment: Markup row appears between Subtotal and Total in the breakdown.
+Validated In: Quote Finalization Sim M1
+
+[154] - MARKUP PERCENTAGE – GLOBAL
+Status: ENFORCED
+Dependencies: [121]
+Applies To: Quote Finalization
+Description:
+35% markup is applied to all subtotal costs before quote display.
+Purpose:
+Enforces margin while decoupling from operation-level logic.
+Source: CostRules_150–179.txt
+Comment: Markup is the only global cost function in ShopQuoteLite.
+Validated In: Summary Output Test B3
+
+----------------------------------------
+
+[CE019] - QUOTE BREAKDOWN: OP AND HARDWARE LABELS
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Breakdown Block
+Description:
+When multiple Outside Processes or Hardware types are present:  
+• Each must appear as its own row labeled with description (e.g., `OP – Anodize`, `HW – FH-M3-6`)
+Purpose:
+Improves traceability of per-process costs in the Breakdown table.
+Source: CalcRules_120–149.txt
+Validated In: Audit Rule Edits_3.txt
+
+[160] - QUOTE BREAKDOWN – OP AND HARDWARE LABELS
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Breakdown Block
+Description:
+When multiple Outside Processes or Hardware types are present:  
+• Each must appear as its own row labeled with description (e.g., `OP – Anodize`, `HW – FH-M3-6`)
+Purpose:
+Improves traceability of per-process costs in the Breakdown table.
+Source: CalcRules_120–149.txt
+Validated In: Audit Rule Edits_3.txt
+
+[066] - HARDWARE DISPLAY FORMAT
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Display UI
+Description:
+Hardware entries must appear using the following format:  
+`• [TYPE] ([QTY]x)` — e.g., `• FH-M3-6 (2x)`  
+No brand name (PEM) should be shown in display.
+Purpose:
+Streamlines UI layout and reduces visual redundancy.
+Source: EditModeRules_060–089.txt
+Validated In: Audit Map v9
+
+[067] - OUTSIDE PROCESS DISPLAY FORMAT
+Status: ENFORCED
+Dependencies: —
+Applies To: Quote Display UI
+Description:
+Outside Process block must not show pricing. Format must follow:  
+`• Label – Color (SPEC)` (e.g. Anodize – Black (MIL-A-8625F))  
+Pricing is enforced separately in Quote Breakdown.
+Purpose:
+Avoids duplicate pricing confusion.
+Source: EditModeRules_060–089.txt
+Validated In: Audit Map v9
+
+[004] - HARDWARE BLOCK
+Status: ENFORCED
+Dependencies: [003]
+Applies To: Quote Display UI
+Description:
+Displays a list of installed hardware pulled from the CAD data or edit mode entry. Hardware must appear before outside processes in the display, but after operations in the quoting sequence.
+Purpose:
+Ensures user-visible and editable hardware listing for quoting and inspection.
+Source: BlockRules_000–029.txt
+Comment: Install operations appear in the operations table, but hardware type and quantity are summarized here.
+Validated In: Quote Flow Simulation H2
+
+[005] - OUTSIDE PROCESS BLOCK
+Status: ENFORCED
+Dependencies: [004]
+Applies To: Quote Display UI
+Description:
+This block lists any finishing or processing steps handled outside the shop, such as plating, powdercoat, silk screen, etc. Each is pulled from the parsed PDF or entered manually in Edit Mode.
+Purpose:
+Ensures accurate cost modeling and visual traceability of outsourced operations.
+Source: BlockRules_000–029.txt
+Comment: Color specs (e.g. Black Anodize) are embedded in the label if parsed.
+Validated In: Quote Flow Simulation O3
+
+[210] - OUTSIDE PROCESS – Anodize MIL-PRF-8625 Type I
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Defines recognition and enforcement of the outside process “Anodize – MIL-PRF-8625 Type I”.
+Purpose:
+Supports part-specific logic, future price control menus, and quote visibility per OP.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[211] - OUTSIDE PROCESS – Anodize MIL-PRF-8625 Type II
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Recognized OP: “Anodize – MIL-PRF-8625 Type II”
+Purpose:
+Standardizes anodize type-II quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[212] - OUTSIDE PROCESS – Anodize MIL-PRF-8625 Type III
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Recognized OP: “Anodize – MIL-PRF-8625 Type III”
+Purpose:
+Standardizes anodize type-III quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[213] - OUTSIDE PROCESS – Bead Blast
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Recognized OP with no spec. Used in finish-only workflows.
+Purpose:
+Standardizes bead blast quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[214] - OUTSIDE PROCESS – Black Oxide MIL-C-13924
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Supports black oxide finishing logic under MIL spec.
+Purpose:
+Standardizes black oxide quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[215] - OUTSIDE PROCESS – Brushed
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Generic mechanical finish with no spec required.
+Purpose:
+Standardizes brushed finish quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[216] - OUTSIDE PROCESS – Chem Film Clear
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Also labeled “C/F Clear” in CSV and display logic.
+Purpose:
+Standardizes chem film clear quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[217] - OUTSIDE PROCESS – Chem Film Gold
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Also labeled “C/F Gold”
+Purpose:
+Standardizes chem film gold quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[218] - OUTSIDE PROCESS – Electropolish
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Electrochemical polishing, spec-free, recognized label.
+Purpose:
+Standardizes electropolish quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[219] - OUTSIDE PROCESS – Misc
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Placeholder for rare, approved processes only. Pricing still sourced from CSV.
+Purpose:
+Standardizes miscellaneous process quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[220] - OUTSIDE PROCESS – Nickel Plate
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Standard nickel plating logic.
+Purpose:
+Standardizes nickel plating quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[221] - OUTSIDE PROCESS – Paint
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Base-level paint spec enforced for quoting.
+Purpose:
+Standardizes paint quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[222] - OUTSIDE PROCESS – Passivate
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Supports stainless passivation OPs.
+Purpose:
+Standardizes passivation quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[223] - OUTSIDE PROCESS – Polish
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Generic cosmetic polish (no spec).
+Purpose:
+Standardizes polish quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[224] - OUTSIDE PROCESS – Powder Coat
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Includes both custom and standard colors (cost same tier).
+Purpose:
+Standardizes powder coat quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[225] - OUTSIDE PROCESS – Silkscreen
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Used for logos, text, graphics. Spec optional.
+Purpose:
+Standardizes silkscreen quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[226] - OUTSIDE PROCESS – Tin Plate
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Defines tin plating quoting logic.
+Purpose:
+Standardizes tin plating quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+[227] - OUTSIDE PROCESS – Zinc Plate
+Status: ENFORCED
+Dependencies: —
+Applies To: Outside Process Mapping, Costing Engine, Block Rendering
+Description:
+Standard zinc plating OP label.
+Purpose:
+Standardizes zinc plating quoting behavior.
+Source: OPRules_210–239.txt
+Validated In: CSV Parse Test 1
+
+----------------------------------------

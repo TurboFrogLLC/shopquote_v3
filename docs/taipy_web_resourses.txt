@@ -1,0 +1,18 @@
+# docs/taipy_web_resourses.txt
+Taipy User Manual (latest)
+https://docs.taipy.io/en/latest/userman/
+
+Taipy GUI — Getting Started / Building Configurations
+https://docs.taipy.io/en/latest/userman/gui/getting_started/
+
+Taipy GUI — Pages and Navigation
+https://docs.taipy.io/en/latest/userman/gui/pages/
+
+Taipy GUI — Visual Elements (Taipy Markdown)
+https://docs.taipy.io/en/latest/userman/gui/viselements/
+
+Taipy Core — Configuration (DataNodes, Tasks, Scenarios)
+https://docs.taipy.io/en/latest/userman/core/config/
+
+Taipy Studio / Designer overview
+https://docs.taipy.io/en/latest/userman/gui/studio/designer/

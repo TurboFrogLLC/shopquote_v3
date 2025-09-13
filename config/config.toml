@@ -1,0 +1,244 @@
+# config/config.toml — ShopQuote v3
+# Combined DataNodes, Tasks, and Scenario (skeleton)
+# Generated 2025-09-13 06:49:22
+# Reference: Taipy docs (see taipy_web_resourses.txt)
+
+[TAIPY]
+
+# =====================================================================
+# GLOBAL Data Nodes (Masters + Derived LOVs)
+# =====================================================================
+
+[DATA_NODE.materials_master]
+storage_type = "csv"
+default_data = "data/masters/materials_master.csv"
+scope = "GLOBAL:SCOPE"
+
+[DATA_NODE.operations_master]
+storage_type = "csv"
+default_data = "data/masters/operations_master.csv"
+scope = "GLOBAL:SCOPE"
+
+[DATA_NODE.hardware_master]
+storage_type = "csv"
+default_data = "data/masters/hardware_master.csv"
+scope = "GLOBAL:SCOPE"
+
+[DATA_NODE.outsideprocess_master]
+storage_type = "csv"
+default_data = "data/masters/outsideprocess_master.csv"
+scope = "GLOBAL:SCOPE"
+
+[DATA_NODE.rates_master]
+storage_type = "csv"
+default_data = "data/masters/rates_master.csv"
+scope = "GLOBAL:SCOPE"
+
+# Derived LOVs (Option B)
+[DATA_NODE.materials_lov]
+storage_type = "in_memory"
+scope = "GLOBAL:SCOPE"
+
+[DATA_NODE.thickness_lov]
+storage_type = "in_memory"
+scope = "GLOBAL:SCOPE"
+
+# Optional shop-wide rates overlay
+[DATA_NODE.rates_overlay]
+storage_type = "json"
+scope = "GLOBAL:SCOPE"
+optional = true
+
+
+# =====================================================================
+# CYCLE Data Nodes (Per Quote Session)
+# =====================================================================
+
+[DATA_NODE.quote_number]
+storage_type = "in_memory"
+scope = "CYCLE:SCOPE"
+
+[DATA_NODE.upload_files]
+storage_type = "in_memory"
+scope = "CYCLE:SCOPE"
+
+# Material -> Thickness dependent selectors
+[DATA_NODE.material_selected]
+storage_type = "in_memory"
+scope = "CYCLE:SCOPE"
+
+[DATA_NODE.thickness_choices]
+storage_type = "in_memory"
+scope = "CYCLE:SCOPE"
+
+[DATA_NODE.thickness_selected]
+storage_type = "in_memory"
+scope = "CYCLE:SCOPE"
+
+[DATA_NODE.thickness_manual_enabled]
+storage_type = "in_memory"
+scope = "CYCLE:SCOPE"
+
+[DATA_NODE.thickness_manual_value]
+storage_type = "in_memory"
+scope = "CYCLE:SCOPE"
+
+[DATA_NODE.thickness_effective]
+storage_type = "in_memory"
+scope = "CYCLE:SCOPE"
+
+# Overlays
+[DATA_NODE.ops_overlay]
+storage_type = "json"
+scope = "CYCLE:SCOPE"
+
+[DATA_NODE.hardware_overlay]
+storage_type = "json"
+scope = "CYCLE:SCOPE"
+
+[DATA_NODE.outside_process_overlay]
+storage_type = "json"
+scope = "CYCLE:SCOPE"
+
+[DATA_NODE.settings_overlay]
+storage_type = "json"
+scope = "CYCLE:SCOPE"
+
+[DATA_NODE.rate_overlay_cycle]
+storage_type = "json"
+scope = "CYCLE:SCOPE"
+
+# Normalized dataset & tables
+[DATA_NODE.cleaned_dataset]
+storage_type = "in_memory"
+scope = "CYCLE:SCOPE"
+
+[DATA_NODE.operations_table]
+storage_type = "in_memory"
+scope = "CYCLE:SCOPE"
+
+[DATA_NODE.hardware_table]
+storage_type = "in_memory"
+scope = "CYCLE:SCOPE"
+
+[DATA_NODE.outside_process_table]
+storage_type = "in_memory"
+scope = "CYCLE:SCOPE"
+
+# Totals & KPIs
+[DATA_NODE.quote_breakdown_json]
+storage_type = "json"
+scope = "CYCLE:SCOPE"
+
+[DATA_NODE.kpi_cost_per_part_runtime]
+storage_type = "in_memory"
+scope = "CYCLE:SCOPE"
+
+[DATA_NODE.kpi_cycle_time_sec]
+storage_type = "in_memory"
+scope = "CYCLE:SCOPE"
+
+[DATA_NODE.kpi_setup_per_part]
+storage_type = "in_memory"
+scope = "CYCLE:SCOPE"
+
+[DATA_NODE.kpi_all_in_per_part]
+storage_type = "in_memory"
+scope = "CYCLE:SCOPE"
+
+
+# =====================================================================
+# TASKS (Function Stubs Only)
+# =====================================================================
+
+[TASK.derive_lovs]
+function = "algos.normalize_merge:derive_lovs"
+inputs  = [ "materials_master", "hardware_master" ]
+outputs = [ "materials_lov", "thickness_lov" ]
+skippable = "False:bool"
+
+[TASK.parse_pdf_ocr]
+function = "algos.parse_pdf_ocr:run"
+inputs  = [ "upload_files" ]
+outputs = [ "cleaned_dataset" ]
+skippable = "True:bool"
+
+[TASK.parse_step]
+function = "algos.parse_step:run"
+inputs  = [ "upload_files" ]
+outputs = [ "cleaned_dataset" ]
+skippable = "True:bool"
+
+[TASK.parse_dxf]
+function = "algos.parse_dxf:run"
+inputs  = [ "upload_files" ]
+outputs = [ "cleaned_dataset" ]
+skippable = "True:bool"
+
+[TASK.restore_quote_json]
+function = "algos.restore_quote_json:run"
+inputs  = [ "upload_files" ]
+outputs = [ "cleaned_dataset",
+            "ops_overlay", "hardware_overlay", "outside_process_overlay",
+            "settings_overlay", "rate_overlay_cycle" ]
+skippable = "True:bool"
+
+[TASK.normalize_merge]
+function = "algos.normalize_merge:run"
+inputs  = [ "materials_master", "operations_master", "hardware_master",
+            "outsideprocess_master", "rates_master",
+            "cleaned_dataset",
+            "ops_overlay", "hardware_overlay", "outside_process_overlay",
+            "settings_overlay", "rate_overlay_cycle" ]
+outputs = [ "cleaned_dataset" ]
+skippable = "False:bool"
+
+[TASK.compute_operations]
+function = "algos.compute_operations:run"
+inputs  = [ "cleaned_dataset",
+            "operations_master", "rates_master", "rates_overlay", "rate_overlay_cycle",
+            "ops_overlay", "hardware_overlay", "outside_process_overlay",
+            "material_selected", "thickness_effective" ]
+outputs = [ "operations_table", "hardware_table", "outside_process_table" ]
+skippable = "False:bool"
+
+[TASK.build_breakdown]
+function = "algos.build_breakdown:run"
+inputs  = [ "operations_table", "hardware_table", "outside_process_table",
+            "rates_master", "rates_overlay", "rate_overlay_cycle" ]
+outputs = [ "quote_breakdown_json",
+            "kpi_cost_per_part_runtime", "kpi_cycle_time_sec",
+            "kpi_setup_per_part", "kpi_all_in_per_part" ]
+skippable = "False:bool"
+
+[TASK.export_quote]
+function = "algos.export_quote:run"
+inputs  = [ "quote_number", "quote_breakdown_json",
+            "operations_table", "hardware_table", "outside_process_table" ]
+outputs = [ ]
+skippable = "False:bool"
+
+
+# =====================================================================
+# SCENARIO (Quote Lifecycle)
+# =====================================================================
+
+[SCENARIO.sq_scenario]
+tasks = [
+  "derive_lovs",
+  "parse_pdf_ocr", "parse_step", "parse_dxf",
+  "restore_quote_json",
+  "normalize_merge",
+  "compute_operations",
+  "build_breakdown",
+  "export_quote"
+]
+frequency = "NONE:FREQUENCY"
+
+[SCENARIO.sq_scenario.sequences]
+init_ui     = [ "derive_lovs" ]
+from_pdf    = [ "parse_pdf_ocr", "normalize_merge", "compute_operations", "build_breakdown" ]
+from_step   = [ "parse_step",    "normalize_merge", "compute_operations", "build_breakdown" ]
+from_dxf    = [ "parse_dxf",     "normalize_merge", "compute_operations", "build_breakdown" ]
+from_restore= [ "restore_quote_json", "normalize_merge", "compute_operations", "build_breakdown" ]
+to_export   = [ "export_quote" ]

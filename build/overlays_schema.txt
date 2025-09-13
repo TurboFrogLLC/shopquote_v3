@@ -1,0 +1,177 @@
+# ShopQuote v3 — Overlay Schemas (Draft v1)
+
+This file defines the JSON overlay structures used to store user-editable state separately from defaults and parsed data. Overlays can be saved/loaded locally (no server disk writes). Scopes:
+- GLOBAL: defaults that apply to all quotes (until overridden)
+- CYCLE: quote-specific overrides
+
+Units:
+- Setup (minutes), Time (seconds), Rates as noted below, Currency in USD.
+
+---
+## 1) ops_overlay (CYCLE)
+Editable operations grid (raw numerics; computed columns are *not* stored here).
+
+### Schema
+{
+  "ops_overlay": [
+    {
+      "Seq":        <int, >=1, unique per quote>,
+      "Operation":  <str>,                          // e.g., "Laser", "Bend", "Install", "C/F Clear"
+      "Setup":      <float, minutes, >=0>,
+      "# Ops":      <int, >=1>,                     // times this op runs per part (Install = hardware qty)
+      "Time":       <float, seconds, >=0>,          // runtime per operation occurrence (sec/op)
+      // Optional helper fields (ignored by compute if present):
+      "Vendor":     <str|null>,                     // used by outside process rows if represented here
+      "Notes":      <str|null>
+    },
+    ...
+  ]
+}
+
+### Rules
+- Computed fields **NOT** stored here: "Setup Cost", "$/Part".
+- Outside Process as op row: Setup=0, Time=0, "# Ops"=1, "$/Part" comes from vendor unit cost later.
+- Install: "# Ops" equals hardware qty; "Time" is per-piece install sec.
+
+### Example
+{
+  "ops_overlay": [
+    { "Seq": 1, "Operation": "Laser",   "Setup": 2.0, "# Ops": 1, "Time": 12.0 },
+    { "Seq": 2, "Operation": "Deburr",  "Setup": 1.0, "# Ops": 1, "Time": 10.0 },
+    { "Seq": 3, "Operation": "Install", "Setup": 0.5, "# Ops": 3, "Time": 4.0 },
+    { "Seq": 4, "Operation": "C/F Clear","Setup": 0.0,"# Ops": 1, "Time": 0.0, "Vendor": "Acme Finishing" }
+  ]
+}
+
+---
+## 2) hardware_overlay (CYCLE)
+Editable hardware lines for the current quote.
+
+### Schema
+{
+  "hardware_overlay": [
+    {
+      "code":       <str>,              // e.g., "FHS-632-6"
+      "description":<str>,
+      "qty":        <int, >=0>,
+      "unit_cost":  <float, >=0>,       // USD per piece
+      "notes":      <str|null>
+    },
+    ...
+  ]
+}
+
+### Example
+{
+  "hardware_overlay": [
+    { "code": "FHS-632-6", "description": "PEM stud",   "qty": 3, "unit_cost": 0.12 },
+    { "code": "CLS-832-1", "description": "PEM standoff","qty": 4, "unit_cost": 0.19 }
+  ]
+}
+
+---
+## 3) outside_process_overlay (CYCLE)
+Editable vendor-based outside processes for the current quote.
+
+### Schema
+{
+  "outside_process_overlay": [
+    {
+      "process":    <str>,              // e.g., "C/F Clear", "Powder Coat"
+      "vendor":     <str>,
+      "qty":        <int, >=0>,         // typically equals quote qty
+      "unit_cost":  <float, >=0>,       // USD per part
+      "notes":      <str|null>
+    },
+    ...
+  ]
+}
+
+### Example
+{
+  "outside_process_overlay": [
+    { "process": "C/F Clear", "vendor": "Acme Finish", "qty": 100, "unit_cost": 0.35 },
+    { "process": "Powder Coat", "vendor": "ProCoat",   "qty": 100, "unit_cost": 1.10 }
+  ]
+}
+
+---
+## 4) rates_overlay (GLOBAL or CYCLE)
+Overrides for rate and pricing parameters. If scope=GLOBAL: acts as new defaults; if scope=CYCLE: quote-specific.
+
+### Schema
+{
+  "rates_overlay": {
+    "setup_rate_per_min":   <float, USD/min, >=0>,
+    "labor_rate_per_sec":   <float, USD/sec, >=0>,   // if CSV is $/hr → divide by 3600
+    "machine_rate_per_hr":  <float, USD/hr,  >=0>,   // optional, reserved for future use
+    "markup_pct":           <float, 0..100>,
+    "qty":                  <int, >=1>               // quote quantity
+  },
+  "scope": "<GLOBAL|CYCLE>"
+}
+
+### Example (GLOBAL)
+{
+  "rates_overlay": {
+    "setup_rate_per_min": 1.25,
+    "labor_rate_per_sec": 0.0167,
+    "machine_rate_per_hr": 45.0,
+    "markup_pct": 12.5,
+    "qty": 100
+  },
+  "scope": "GLOBAL"
+}
+
+### Example (CYCLE)
+{
+  "rates_overlay": {
+    "setup_rate_per_min": 1.35,
+    "labor_rate_per_sec": 0.0175,
+    "markup_pct": 10.0,
+    "qty": 250
+  },
+  "scope": "CYCLE"
+}
+
+---
+## 5) settings_overlay (GLOBAL or CYCLE)
+Convenience bundle for saving/loading the entire settings panel.
+
+### Schema
+{
+  "settings_overlay": {
+    "setup_rate_per_min":  <float>,
+    "labor_rate_per_sec":  <float>,
+    "machine_rate_per_hr": <float>,
+    "markup_pct":          <float>,
+    "qty":                 <int>
+  },
+  "scope": "<GLOBAL|CYCLE>"
+}
+
+### Example
+{
+  "settings_overlay": {
+    "setup_rate_per_min": 1.25,
+    "labor_rate_per_sec": 0.0167,
+    "machine_rate_per_hr": 45.0,
+    "markup_pct": 12.5,
+    "qty": 100
+  },
+  "scope": "CYCLE"
+}
+
+---
+## 6) Validation Summary
+- Numbers must be >= 0 (except qty >= 1, # Ops >= 1).
+- Seq must be unique and >= 1.
+- Outside Process in ops_overlay: enforce Setup=0, Time=0, "# Ops"=1; its $/Part will come from vendor unit cost in outside_process overlay or CSV.
+- Install operation: "# Ops" should mirror hardware total pieces for the part; Time is per-piece install seconds from CSV/overlay.
+- Currency rounded to 2 decimals **on display only**; overlays keep raw floats.
+
+---
+## 7) File-Envelopes for Save/Load
+Overlays may be saved individually or bundled. Recommended envelope keys:
+- Single overlay: { "ops_overlay": [...] }
+- Bundle: { "ops_overlay": [...], "hardware_overlay": [...], "outside_process_overlay": [...], "rates_overlay": {..., "scope": "CYCLE"} }

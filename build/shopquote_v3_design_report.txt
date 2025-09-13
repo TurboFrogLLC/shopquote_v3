@@ -1,0 +1,290 @@
+# Consolidated Report — ShopQuote v3 in Taipy (Updated)
+
+## 1. Core Ecosystems
+- **Taipy Core**  
+  - Scenarios, Tasks, Data Nodes, Orchestrator.  
+  - Workflow engine for parsing, cleaning, operations, breakdown, and export.  
+- **Taipy GUI**  
+  - Pages (`.md` files), layouts, widgets, navigation.  
+  - State binding with Python variables and Data Nodes.  
+- **Integration**  
+  - Core runs are triggered from **purpose-built buttons** (no generic scenario/DAG widgets in end-user UI).
+
+---
+
+## 2. Project Structure (Recommended)
+```
+shopquote_v3/
+├─ main.py                           # Entry point, runs Gui with pages + scenario loading
+├─ config/
+│  └─ config.toml                    # Data Nodes, Tasks, Scenarios (Studio/TOML)
+├─ pages/                            # UI layouts
+│  ├─ home.md
+│  ├─ part_summary.md
+│  ├─ operations.md
+│  ├─ quote_breakdown.md
+│  ├─ quote_summary.md
+│  └─ settings.md
+├─ handlers/                         # Page-specific Python handlers (UI events/state)
+│  ├─ home.py
+│  ├─ part_summary.py
+│  ├─ operations.py
+│  ├─ quote_breakdown.py
+│  ├─ quote_summary.py
+│  └─ settings.py
+├─ algos/                            # Business logic functions (no UI)
+│  ├─ parse_pdf_ocr.py
+│  ├─ parse_step.py
+│  ├─ parse_dxf.py
+│  ├─ restore_quote_json.py
+│  ├─ normalize_merge.py
+│  ├─ compute_operations.py
+│  ├─ build_breakdown.py
+│  └─ export_quote.py
+├─ data/
+│  ├─ masters/                       # material_lovs.csv, materials_master.csv (material + thickness combined, filtered at runtime), ops_lovs.csv, hardware_lovs.csv, outsideprocess_master.csv, rates_master.csv, settings_master.csv
+│  ├─ staging/                       # raw_extract_*.json, cleaned_dataset.csv, intermediate artifacts
+│  └─ exports/                       # sQ-[QUOTE]_[DD-MM-YYYY].txt/.pdf
+└─ build/                            # build rules and flow/logic md notes
+```
+**Notes**
+- Parsing is split per file type in `algos/`, orchestrated by `handlers/home.py` (button click).  
+- Handlers do not implement parsing logic; they call into `algos/*` and write to Data Nodes.  
+- `main.py` router stub: defines `pages` dict for all `.md` files and runs `Gui(pages=...)`.  
+- `<|navbar|>` auto-populates from this dict; no manual wiring needed.
+
+---
+
+## 3. Multi-Page GUI
+- **Definition**:  
+  ```python
+  from taipy.gui import Gui
+  pages = {
+      "Home": "pages/home.md",
+      "Part Summary": "pages/part_summary.md",
+      "Operations": "pages/operations.md",
+      "Quote Breakdown": "pages/quote_breakdown.md",
+      "Quote Summary": "pages/quote_summary.md",
+      "Settings": "pages/settings.md"
+  }
+  Gui(pages=pages, title="ShopQuote v3").run()
+  ```
+- **Navigation (Navbar)**:  
+  - `<|navbar|>` auto-populates from `pages` dict.  
+  - Placing inside a `<|part|>` is optional (styling only).
+
+- **State Sharing**:  
+  - Global state shared across all pages.  
+  - Updates propagate only on button click (no realtime sync).
+
+---
+
+## 4. Visual Elements (End-User UI)
+- Layout: `<|layout|>`, `<|part|>`, `<|content|>`  
+- Navbar: `<|navbar|>`  
+- Inputs: `<|{var}|input|>`, `<|{var}|selector|>`  
+- Buttons: `<|label|button|on_action=handler|>`  
+- Advanced scenario widgets are hidden from end users.
+
+---
+
+## 5. Configurations (Studio/TOML)
+### Data Nodes & Scopes
+**GLOBAL**  
+- `material_lovs`, `thickness_lovs`, `op_lovs`, `hardware_lovs`, `outside_process_lovs`, `rates_master`, `settings_master`  
+- `rate_overlay` (can be global)
+
+**CYCLE**  
+- `quote_number`  
+- `upload_files`, `parse_options`  
+- `raw_extract_ocr`, `raw_extract_step`, `raw_extract_dxf`  
+- `restored_dataset`, `restored_ops`, `restored_hw`, `restored_opx`, `restored_settings`  
+- Overlays: `ops_overlay`, `hardware_overlay`, `outside_process_overlay`, `settings_overlay`, `rate_overlay_cycle`  
+- `cleaned_dataset`  
+- `operations_table`, `hardware_table`, `outside_process_table`  
+- `quote_breakdown_json`, `kpi_*`  
+- `export_txt_path`, `export_pdf_path`
+
+---
+
+## 6. Tasks & Scenario
+- **Tasks**: parse, restore, normalize, compute_operations, build_breakdown, export_quote.  
+- **Scenario**: `sq_scenario`, Frequency = NONE.  
+- **Sequence**: parse/restore → normalize → compute_operations → build_breakdown → export.
+
+---
+
+## 7. Button-Driven UX & Handler Responsibilities
+
+### Home (`home.py`)
+- **Upload / Drag-and-Drop** → stage files into `upload_files` (in-memory).  
+- **Process Files** → `submit [task_parse_pdf_ocr, task_parse_step, task_parse_dxf]` then `submit [task_normalize_merge]`.  
+- **Restore from Quote PDF** → `submit [task_restore_quote_json]` then `submit [task_normalize_merge]`.  
+- **Clear Uploads** → reset `upload_files`, `raw_extract_*`, `restored_*`, `cleaned_dataset`.  
+- **Status Report** → shows files staged, parse/restore mode, validation results.  
+- **Start Quote** → enabled if `validation_report.ok == True` **and ≥1 file parsed/restored successfully**.  
+  - On click: generates new `quote_number` (CYCLE) if blank, with fallback auto-gen format `SQ-mm-ddyyyy-hh`.  
+  - Enforces OPR003.A mandatory ops at start (Plan, Final Insp., Package).  
+  - Creates/selects scenario keyed to quote_number.  
+  - Navigates to Part Summary.  
+  - `quote_number` displayed on all pages except Home.
+
+### Part Summary (`part_summary.py`)
+- Note: Thickness values are derived from `materials_master.csv`. If a selected material has no thickness entries, the user will see a banner and may enter a manual thickness (quote-specific, CYCLE scope).
+- Editable fields: Customer, Part Number, Description, Material, Thickness, Bends.  
+- Read-only fields: Flat Size, Hardware, Outside Processes.  
+- **Save & Continue** → saves edits as overlays, propagates downstream, navigates to Operations.
+
+### Operations (`operations.py`)
+- **Generate Quote** → allowed only when not in edit mode. Submits compute_operations → build_breakdown.  
+- **Edit Operations** → toggles `edit_mode=True`, shows editable grid.  
+- **Update Operations** → validates overlay, recomputes locked fields (`Setup Cost`, `$ / Part` runtime-only), stays in edit mode.  
+- **Exit (Save)** → saves overlay, recomputes locked fields, exits edit mode.  
+- **Cancel (No Save)** → exits edit mode, restores last saved table.  
+- Install = special op: `# Ops = hardware qty`, `Time = sec/piece`, Setup pulled from CSV.  
+- Outside Process = special op: `Setup=0`, `Time=0`, `# Ops=1`, `$ / Part = vendor unit cost`.  
+- `$ / Part` always runtime-only; Setup Cost tracked separately.
+
+### Quote Breakdown (`quote_breakdown.py`)
+- **Read-only** totals & KPIs.  
+- Shows totals: Runtime, Setup, Hardware, Outside Processes, Subtotal, Markup %, Grand Total.  
+- Shows per-part KPIs.  
+- **Go to Quote Summary** → navigate to Quote Summary.
+
+### Quote Summary (`quote_summary.py`)
+- **Export TXT/PDF** → streams export to user (no server disk writes).  
+- **Start New Quote** → clears all CYCLE nodes, resets to Home.
+
+### Settings (`settings.py`)
+- **Save Settings** → save current overrides (GLOBAL or CYCLE).  
+- **Download Overlay** → streams JSON overlay to user.  
+- **Upload Overlay** → apply settings/hardware/ops overlays from file.  
+- Scope rules enforced: GLOBAL vs CYCLE.  
+- Optional recompute after save.
+
+---
+
+## 8. Multi-Source Parsing & Restore Architecture
+- `parse_pdf_ocr`, `parse_step`, `parse_dxf`, `restore_quote_from_json` feed into `normalize_merge`.  
+- `normalize_merge` outputs `cleaned_dataset`.  
+- Downstream: compute ops → build breakdown → export.
+
+---
+
+## 9. Execution Flow (End-to-End)
+1. **Home**: Upload → Process/Restore → Status → Start Quote (≥1 valid file).  
+2. **Part Summary**: Edit fields → Save & Continue.  
+3. **Operations**: View or edit → Update/Exit/Cancel → Generate Quote.  
+4. **Quote Breakdown**: Review totals & KPIs → Go to Summary.  
+5. **Quote Summary**: Export TXT/PDF or Start New Quote.  
+6. **Settings**: Manage overlays (local save/load). Global vs Cycle apply.
+
+---
+
+## 10. Overlay Schemas (Summary)
+- **ops_overlay**: Seq, Operation, Setup, # Ops, Time (computed fields separate).  
+- **hardware_overlay**: code, desc, qty, unit_cost.  
+- **outside_process_overlay**: process, vendor, qty, unit_cost.  
+- **rates_overlay**: setup_rate_per_min, labor_rate_per_sec, machine_rate_per_hr, markup_pct, qty.  
+- **settings_overlay**: convenience bundle for settings panel.  
+- All overlays can be GLOBAL or CYCLE.  
+- Saved/loaded locally, JSON preferred.  
+- No disk writes.
+
+---
+
+## 11. Best Practices
+- `.md` = layout, `.py` = handler logic, `algos/` = business logic.  
+- No disk writes: overlays stay in memory, exports stream to user.  
+- Quote lifecycle: `quote_number` only created on Start Quote; shown everywhere else.  
+- Consistency: IDs in navbar, pages dict, and handlers must match.  
+- Simplicity: avoid exposing scenario widgets; only purpose-built buttons.  
+- Router stub ensures `<|navbar|>` works automatically.
+
+---
+# Revision Update — Data Sources, LOV Strategy, and Thickness Override
+Date: 2025-09-13 06:21:22
+
+## A) Master Data Files (Updated)
+We have standardized master CSV filenames and will keep them under `data/masters/`:
+- `materials_master.csv`
+- `operations_master.csv`
+- `hardware_master.csv`
+- `outsideprocess_master.csv`
+- `rates_master.csv`
+
+> Notes:
+> - We **no longer use** separate `*_lovs.csv` files. Lists for selectors (LOVs) will be **derived from masters** at runtime (Option B).
+
+## B) Derived LOVs (Option B — No extra CSVs)
+Instead of maintaining separate LOV CSVs, the UI dropdowns are derived in-memory from masters:
+- **GLOBAL (in_memory) Derived Nodes**
+  - `materials_lov`: list[str] from `materials_master.csv` (distinct materials)
+  - `thickness_lov`: dict[str, list[str]] from `hardware_master.csv` (material → available thickness display strings)
+
+This keeps a **single source of truth** and reduces file maintenance. The derivation will be done by a small Task in Step 3.
+
+## C) Material → Thickness Dependent Selectors
+Behavior in **Part Summary**:
+1. User selects **Material** (choices = `materials_lov`).
+2. App filters `thickness_lov[material]` into `thickness_choices` (CYCLE, in_memory).
+3. Thickness selector is shown/hidden depending on whether choices exist.
+
+## D) Manual Thickness Override (CYCLE-only)
+If no thickness entries exist for a given material (or if override is explicitly enabled):
+- Show banner: “No thicknesses for {material} in this dataset.”
+- Offer manual input (quote-specific).
+- Resolve **one effective thickness** used everywhere downstream:
+  - Prefer `thickness_selected` from the dropdown if available,
+  - else use `thickness_manual_value` when `thickness_manual_enabled` is true.
+
+**CYCLE Data Nodes (new)**
+- `material_selected`: str
+- `thickness_choices`: list[str]
+- `thickness_selected`: str
+- `thickness_manual_enabled`: bool
+- `thickness_manual_value`: str
+- `thickness_effective`: str   # single source of truth for compute/export
+
+## E) Revised Data Nodes & Scopes Summary
+**GLOBAL**
+- `materials_master` (csv → `data/masters/materials_master.csv`)
+- `operations_master` (csv → `data/masters/operations_master.csv`)
+- `hardware_master` (csv → `data/masters/hardware_master.csv`)
+- `outsideprocess_master` (csv → `data/masters/outsideprocess_master.csv`)
+- `rates_master` (csv → `data/masters/rates_master.csv`)
+- `materials_lov` (in_memory) — derived
+- `thickness_lov` (in_memory) — derived
+
+**CYCLE**
+- `quote_number` (in_memory)
+- `upload_files` (in_memory)
+- Overlays: `ops_overlay`, `hardware_overlay`, `outside_process_overlay`, `settings_overlay`, `rate_overlay_cycle` (json)
+- `cleaned_dataset` (csv or in_memory, TBD)
+- `operations_table`, `hardware_table`, `outside_process_table` (in_memory)
+- `quote_breakdown_json` (json)
+- KPI nodes (in_memory)
+- New: `material_selected`, `thickness_choices`, `thickness_selected`, `thickness_manual_enabled`, `thickness_manual_value`, `thickness_effective`
+
+## F) Project Structure (Supersedes earlier file lists)
+```
+shopquote_v3/
+├─ main.py
+├─ config/
+│  └─ config.toml
+├─ pages/
+├─ handlers/
+├─ algos/
+├─ data/
+│  ├─ masters/
+│  │  ├─ materials_master.csv
+│  │  ├─ operations_master.csv
+│  │  ├─ hardware_master.csv
+│  │  ├─ outsideprocess_master.csv
+│  │  └─ rates_master.csv
+│  ├─ staging/
+│  └─ exports/
+└─ build/
+```
+This revision aligns the design report with Taipy’s **Building Configurations** and **Scenario Management** recommendations while adopting the Option B strategy for LOVs and enabling a quote-specific manual thickness override.
+---
