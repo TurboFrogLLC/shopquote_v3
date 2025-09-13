@@ -21,3 +21,7 @@ __pycache__/
 # Runtime-only data (not source of truth)
 data/exports/*
 data/staging/*
+!data/exports/.gitkeep
+!data/staging/.gitkeep
+!build/.gitkeep
+!docs/.gitkeep
