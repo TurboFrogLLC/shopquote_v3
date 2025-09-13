@@ -1,0 +1,22 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv*/
+.env
+
+# macOS system files
+.DS_Store
+
+# VS Code settings (optional, keep if you want to share settings)
+.vscode/*
+
+# Taipy exports (we stream to client, don’t store server-side)
+data/exports/*
+
+# Logs and temp
+*.log
+*.tmp
